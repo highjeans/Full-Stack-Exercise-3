@@ -22,7 +22,7 @@ public class Controller {
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("ABC");
+            stage.setTitle("Connect to a peer");
             stage.setScene(new Scene(root1));
             stage.show();
         } catch(Exception e) {

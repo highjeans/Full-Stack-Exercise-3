@@ -32,21 +32,26 @@
 
         <left>
             <VBox>
-                <Label text="lorem ipsum left"
+                <Label text="Network information"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
                        alignment="CENTER"
+                       textAlignment="CENTER"
+                       wrapText="true"
                        style="-fx-font-size: 20;" />
                 <Label text="lorem ipsum left"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
+                       wrapText="true"
+                       textAlignment="CENTER"
                        alignment="CENTER" />
             </VBox>
         </left>
 
         <center>
             <VBox>
-                <TextArea text="lorem ipsum est dolorem" wrapText="true" />
+                <TextArea wrapText="true"
+                          VBox.vgrow="ALWAYS" minHeight="420" />
                 <HBox BorderPane.alignment="BOTTOM_CENTER" alignment="BOTTOM_CENTER">
                     <TextField HBox.hgrow="ALWAYS" />
                     <Button text="Send" />
@@ -56,14 +61,18 @@
 
         <right>
             <VBox>
-                <Label text="lorem ipsum left"
+                <Label text="Connected peers"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
                        alignment="CENTER"
+                       textAlignment="CENTER"
+                       wrapText="true"
                        style="-fx-font-size: 20;" />
-                <Label text="lorem ipsum left"
+                <Label text="lorem ipsum right"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
+                       wrapText="true"
+                       textAlignment="CENTER"
                        alignment="CENTER" />
             </VBox>
         </right>
