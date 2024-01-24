@@ -6,9 +6,15 @@ import java.util.List;
 
 public class Server {
     private final Peers knownPeersObj;
+    private static Server server;
 
-    public Server() {
+    private Server() {
         knownPeersObj = new Peers();
+    }
+
+    public static Server getServerObject() {
+        if (server == null) server = new Server();
+        return server;
     }
 
     public void startServer(int port) {

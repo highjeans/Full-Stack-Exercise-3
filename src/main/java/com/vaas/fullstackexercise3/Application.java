@@ -16,7 +16,7 @@ public class Application extends javafx.application.Application {
         stage.setScene(scene);
         stage.show();
         (new Thread(() -> {
-            (new Server()).startServer(0);
+            Server.getServerObject().startServer(0);
         })).start();
     }
 
