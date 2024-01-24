@@ -15,7 +15,7 @@ public class Server {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + port);
+            System.out.println("Server started on port " + serverSocket.getLocalPort());
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
@@ -39,27 +39,34 @@ public class Server {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            String request = reader.readLine();
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while (!(line = reader.readLine()).isBlank() && reader.ready()) {
+                builder.append(line).append(System.lineSeparator());
+            }
+            String request = builder.toString();
             System.out.println(request);
 
-            if (request != null) {
-                String[] parts = request.split(" ");
-                String command = parts[0];
+            InetSocketAddress senderAddr = (InetSocketAddress) clientSocket.getRemoteSocketAddress();
+            System.out.println(senderAddr);
+            System.out.println(senderAddr.getClass());
 
-                switch (command) {
-                    case "GET_KNOWN_PEERS":
-                        sendKnownPeers(writer, parts[1]);
-                        break;
-                    case "NEW_PEER":
-                        addNewKnownPeer(parts[1]);
-                        break;
-                    case "NEW_MESSAGE":
-                        // Handle new message
-                        break;
-                    default:
-                        System.out.println("Unknown command: " + command);
-                        break;
-                }
+            String[] parts = request.split(" ");
+            String endpoint = parts[1];
+
+            switch (endpoint) {
+                case "/known_peers":
+                    sendKnownPeers(writer, senderAddr);
+                    break;
+                case "/new_peer":
+                    addNewKnownPeer(senderAddr);
+                    break;
+                case "/new_message":
+                    // Handle new message
+                    break;
+                default:
+                    System.out.println("Unknown command: " + endpoint);
+                    break;
             }
 
             clientSocket.close();
@@ -68,20 +75,18 @@ public class Server {
         }
     }
 
-    private void sendKnownPeers(PrintWriter writer, String ipFrom) throws IOException {
-        String[] ipAddressStr = ipFrom.split(":");
-        InetSocketAddress ipAddress = new InetSocketAddress(ipAddressStr[0], Integer.parseInt(ipAddressStr[1]));
-        for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(ipAddress)) {
-            writer.println("KNOWN_PEER " + knownPeer.getHostString() + " " + knownPeer.getPort());
+    private void sendKnownPeers(PrintWriter writer, InetSocketAddress ipFrom) throws IOException {
+        writer.println("HTTP/1.1 200 OK");
+        writer.println();
+        for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(ipFrom)) {
+            writer.println(knownPeer.toString().substring(1));
         }
-        knownPeersObj.broadcastNewPeer(ipAddress);
+        knownPeersObj.broadcastNewPeer(ipFrom);
     }
 
-    private void addNewKnownPeer(String peerInfo) throws IOException {
-        String[] parts = peerInfo.split(":");
-        InetSocketAddress newPeer = new InetSocketAddress(parts[0], Integer.parseInt(parts[1]));
-        knownPeersObj.addNewPeer(newPeer);
-        System.out.println("New known peer added: " + newPeer.getHostString() + ":" + newPeer.getPort());
+    private void addNewKnownPeer(InetSocketAddress peerInfo) throws IOException {
+        knownPeersObj.addNewPeer(peerInfo);
+        System.out.println("New known peer added: " + peerInfo.getHostString() + ":" + peerInfo.getPort());
     }
 
     public List<InetSocketAddress> getKnownPeers() {
