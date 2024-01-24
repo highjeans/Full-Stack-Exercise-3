@@ -3,10 +3,12 @@ package com.vaas.fullstackexercise3;
 import java.io.*;
 import java.net.*;
 import java.util.List;
+import org.apache.hc.client5.http.fluent.Request;
 
 public class Server {
     private final Peers knownPeersObj;
     private static Server server;
+    private static int port;
 
     private Server() {
         knownPeersObj = new Peers();
@@ -21,7 +23,7 @@ public class Server {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + serverSocket.getLocalPort());
+            System.out.println("Server started on port " + (port = serverSocket.getLocalPort()));
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
@@ -101,4 +103,14 @@ public class Server {
         return knownPeersObj.knownPeers;
     }
 
+    public static boolean sendPostRequest(InetSocketAddress addrTo, String endpoint, String message) {
+        try {
+            if (Request.post(addrTo + "/" + endpoint).addHeader("Port", String.valueOf(port)).addHeader("Message", message).execute().returnResponse().getCode() == 200) {
+                throw new IOException();
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 }
