@@ -2,14 +2,13 @@ package com.vaas.fullstackexercise3;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
-    private List<InetSocketAddress> knownPeers;
+    private final Peers knownPeersObj;
 
     public Server() {
-        knownPeers = new ArrayList<>();
+        knownPeersObj = new Peers();
     }
 
     public void startServer(int port) {
@@ -32,6 +31,7 @@ public class Server {
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
 
             String request = reader.readLine();
+            System.out.println(request);
 
             if (request != null) {
                 String[] parts = request.split(" ");
@@ -39,7 +39,7 @@ public class Server {
 
                 switch (command) {
                     case "GET_KNOWN_PEERS":
-                        sendKnownPeers(writer);
+                        sendKnownPeers(writer, parts[1]);
                         break;
                     case "NEW_PEER":
                         addNewKnownPeer(parts[1]);
@@ -59,21 +59,24 @@ public class Server {
         }
     }
 
-    private void sendKnownPeers(PrintWriter writer) {
-        for (InetSocketAddress knownPeer : knownPeers) {
+    private void sendKnownPeers(PrintWriter writer, String ipFrom) throws IOException {
+        String[] ipAddressStr = ipFrom.split(":");
+        InetSocketAddress ipAddress = new InetSocketAddress(ipAddressStr[0], Integer.parseInt(ipAddressStr[1]));
+        for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(ipAddress)) {
             writer.println("KNOWN_PEER " + knownPeer.getHostString() + " " + knownPeer.getPort());
         }
+        knownPeersObj.broadcastNewPeer(ipAddress);
     }
 
-    private void addNewKnownPeer(String peerInfo) {
+    private void addNewKnownPeer(String peerInfo) throws IOException {
         String[] parts = peerInfo.split(":");
         InetSocketAddress newPeer = new InetSocketAddress(parts[0], Integer.parseInt(parts[1]));
-        knownPeers.add(newPeer);
+        knownPeersObj.addNewPeer(newPeer);
         System.out.println("New known peer added: " + newPeer.getHostString() + ":" + newPeer.getPort());
     }
 
     public List<InetSocketAddress> getKnownPeers() {
-        return knownPeers;
+        return knownPeersObj.knownPeers;
     }
 
 }

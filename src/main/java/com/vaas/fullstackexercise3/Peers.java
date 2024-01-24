@@ -9,20 +9,18 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Peers {
-    private ArrayList<InetSocketAddress> knownPeers;
+    public ArrayList<InetSocketAddress> knownPeers;
 
     public Peers() {
         knownPeers = new ArrayList<>();
     }
 
     public ArrayList<InetSocketAddress> getKnownPeers(InetSocketAddress addressRequestedFrom) throws IOException {
-        knownPeers.add(addressRequestedFrom);
-        saveKnownPeers();
-        broadcastNewPeer(addressRequestedFrom);
+        addNewPeer(addressRequestedFrom);
         return knownPeers;
     }
 
-    private void broadcastNewPeer(InetSocketAddress address) {
+    public void broadcastNewPeer(InetSocketAddress address) {
         // TODO: Broadcast using server.java
     }
 
@@ -46,5 +44,10 @@ public class Peers {
             knownPeers.add(new InetSocketAddress(newLine[0], Integer.parseInt(newLine[1])));
         }
         scanner.close();
+    }
+
+    public void addNewPeer(InetSocketAddress peer) throws IOException {
+        knownPeers.add(peer);
+        saveKnownPeers();
     }
 }
