@@ -65,7 +65,7 @@ public class Server {
                     sendKnownPeers(writer, senderAddr);
                     break;
                 case "/new_peer":
-                    addNewKnownPeer(senderAddr);
+                    addNewKnownPeer(writer, senderAddr);
                     break;
                 case "/new_message":
                     // Handle new message
@@ -90,9 +90,11 @@ public class Server {
         knownPeersObj.broadcastNewPeer(ipFrom);
     }
 
-    private void addNewKnownPeer(InetSocketAddress peerInfo) throws IOException {
+    private void addNewKnownPeer(PrintWriter writer, InetSocketAddress peerInfo) throws IOException {
         knownPeersObj.addNewPeer(peerInfo);
         System.out.println("New known peer added: " + peerInfo.getHostString() + ":" + peerInfo.getPort());
+        writer.println("HTTP/1.1 200 OK");
+        writer.println();
     }
 
     public List<InetSocketAddress> getKnownPeers() {
