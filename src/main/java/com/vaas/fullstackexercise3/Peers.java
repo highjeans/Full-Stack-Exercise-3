@@ -47,6 +47,7 @@ public class Peers {
     }
 
     public void addNewPeer(InetSocketAddress peer) throws IOException {
+        if (peer.getAddress().isLoopbackAddress()) return;
         knownPeers.add(peer);
         saveKnownPeers();
     }
