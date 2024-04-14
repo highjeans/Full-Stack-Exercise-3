@@ -20,8 +20,13 @@ public class Peers {
         return knownPeers;
     }
 
-    public void broadcastNewPeer(InetSocketAddress address) {
-        // TODO: Broadcast using server.java
+    public void broadcastNewPeer(InetSocketAddress address) throws IOException {
+        for (InetSocketAddress knownPeer : knownPeers) {
+            if (Server.sendPostRequest(knownPeer, "new_peer", knownPeer.toString())) {
+                knownPeers.remove(knownPeer);
+                saveKnownPeers();
+            }
+        }
     }
 
     public void saveKnownPeers() throws IOException {

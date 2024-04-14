@@ -105,7 +105,7 @@ public class Server {
 
     public static boolean sendPostRequest(InetSocketAddress addrTo, String endpoint, String message) {
         try {
-            if (Request.post(addrTo + "/" + endpoint).addHeader("Port", String.valueOf(port)).addHeader("Message", message).execute().returnResponse().getCode() == 200) {
+            if (Request.post(addrTo + "/" + endpoint).addHeader("Port", String.valueOf(port)).addHeader("Message", message).execute().returnResponse().getCode() != 200) {
                 throw new IOException();
             }
             return true;
