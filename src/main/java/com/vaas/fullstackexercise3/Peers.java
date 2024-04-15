@@ -13,12 +13,12 @@ public class Peers {
         knownPeers = FXCollections.observableArrayList();
     }
 
-    public ObservableList<InetSocketAddress> getKnownPeers(InetSocketAddress addressRequestedFrom) throws IOException {
+    public ObservableList<InetSocketAddress> getKnownPeers(InetSocketAddress addressRequestedFrom) {
         addNewPeer(addressRequestedFrom);
         return knownPeers;
     }
 
-    public void broadcastNewPeer(InetSocketAddress address) throws IOException {
+    public void broadcastNewPeer(InetSocketAddress address) {
         for (InetSocketAddress knownPeer : knownPeers) {
             if (Server.sendPostRequest(knownPeer, "new_peer", knownPeer.toString())) {
                 knownPeers.remove(knownPeer);
@@ -26,7 +26,7 @@ public class Peers {
         }
     }
 
-    public void addNewPeer(InetSocketAddress peer) throws IOException {
+    public void addNewPeer(InetSocketAddress peer) {
         if (peer.getAddress().isLoopbackAddress()) return;
         knownPeers.add(peer);
     }
