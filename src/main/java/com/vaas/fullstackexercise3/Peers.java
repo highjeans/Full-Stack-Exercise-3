@@ -1,21 +1,22 @@
 package com.vaas.fullstackexercise3;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Peers {
-    public ArrayList<InetSocketAddress> knownPeers;
+    public ObservableList<InetSocketAddress> knownPeers;
 
     public Peers() {
-        knownPeers = new ArrayList<>();
+        knownPeers = FXCollections.observableArrayList();
     }
 
-    public ArrayList<InetSocketAddress> getKnownPeers(InetSocketAddress addressRequestedFrom) throws IOException {
+    public ObservableList<InetSocketAddress> getKnownPeers(InetSocketAddress addressRequestedFrom) throws IOException {
         addNewPeer(addressRequestedFrom);
         return knownPeers;
     }

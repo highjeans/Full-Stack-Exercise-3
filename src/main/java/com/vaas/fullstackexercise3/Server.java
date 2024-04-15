@@ -2,7 +2,8 @@ package com.vaas.fullstackexercise3;
 
 import java.io.*;
 import java.net.*;
-import java.util.List;
+
+import javafx.collections.ObservableList;
 import org.apache.hc.client5.http.fluent.Request;
 
 public class Server {
@@ -23,7 +24,8 @@ public class Server {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + (port = serverSocket.getLocalPort()));
+            System.out.println("Server started on port " + (Server.port = serverSocket.getLocalPort()));
+            knownPeersObj.loadKnownPeers();
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
@@ -99,7 +101,7 @@ public class Server {
         writer.println();
     }
 
-    public List<InetSocketAddress> getKnownPeers() {
+    public ObservableList<InetSocketAddress> getKnownPeers() {
         return knownPeersObj.knownPeers;
     }
 
