@@ -1,5 +1,6 @@
 package com.vaas.fullstackexercise3;
 
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,11 +10,24 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
 
 public class Controller {
-//    @FXML
-//    private Label welcomeText;
-//
+    public Controller() {
+        Server.getServerObject().getKnownPeers().addListener((ListChangeListener<InetSocketAddress>) change -> {
+            // Update peersList in the GUI every time the knownPeers list is updated in through the Server
+            List<InetSocketAddress> new_peers = (List<InetSocketAddress>) change.getList();
+            StringBuilder newPeersString = new StringBuilder();
+            for (InetSocketAddress peer : new_peers) {
+                newPeersString.append(peer.getAddress().getHostAddress()).append(":").append(peer.getPort()).append("\n");
+            }
+            peersList.setText(newPeersString.toString());
+        });
+    }
+
+    @FXML
+    public Label peersList;
 
     @FXML
     protected void enterPeerManually() throws IOException {

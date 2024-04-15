@@ -62,6 +62,7 @@
         <right>
             <VBox>
                 <Label text="Connected peers"
+                       fx:id="peersList"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
                        alignment="CENTER"
