@@ -25,7 +25,6 @@ public class Server {
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Server started on port " + (Server.port = serverSocket.getLocalPort()));
-            knownPeersObj.loadKnownPeers();
 
             while (!Thread.currentThread().isInterrupted()) {
                 Socket clientSocket = serverSocket.accept();
