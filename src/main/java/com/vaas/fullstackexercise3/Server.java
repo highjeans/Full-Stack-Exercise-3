@@ -1,13 +1,15 @@
 package com.vaas.fullstackexercise3;
 
-import java.io.*;
-import java.net.*;
-
+import com.sun.net.httpserver.HttpServer;
+import javafx.beans.Observable;
 import javafx.collections.ObservableList;
-import org.apache.hc.client5.http.fluent.Request;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 
 public class Server {
-    private final Peers knownPeersObj;
+    private Peers knownPeersObj;
     private static Server server;
     private static int port;
 
@@ -20,98 +22,79 @@ public class Server {
         return server;
     }
 
-    public void startServer(int port) {
-        ServerSocket serverSocket = null;
+    public void startServer() {
         try {
-            serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + (Server.port = serverSocket.getLocalPort()));
-
-            while (!Thread.currentThread().isInterrupted()) {
-                Socket clientSocket = serverSocket.accept();
-                handleClient(clientSocket);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (serverSocket != null && !serverSocket.isClosed()) {
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+            server.createContext("/known_peers", exchange -> { // This endpoint will be called only when a new client connects
+                if (!exchange.getRequestMethod().equals("GET")) return;
+                InetSocketAddress address;
                 try {
-                    serverSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    address = new InetSocketAddress(exchange.getRemoteAddress().getAddress(), Integer.parseInt(exchange.getRequestHeaders().getFirst("Port")));
+                } catch (NumberFormatException e) { // Either invalid port number or no port given in header
+                    exchange.sendResponseHeaders(400, 0);
+                    exchange.close();
+                    return;
+                } catch (IllegalArgumentException e) {
+                    exchange.sendResponseHeaders(400, 0);
+                    exchange.close();
+                    return;
                 }
-            }
-        }
-    }
+                System.out.println(exchange.getRequestHeaders().getFirst("Port"));
+                StringBuilder builder = new StringBuilder();
+                for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(address)) {
+                    builder.append(knownPeer.getAddress().getHostAddress()).append(":").append(knownPeer.getPort()).append(System.lineSeparator());
+                }
+                System.out.println(builder.toString().getBytes().length + ", " + builder.length());
+                exchange.sendResponseHeaders(200, builder.length());
+                OutputStream out = exchange.getResponseBody();
+                out.write(builder.toString().getBytes());
+                out.flush();
+                exchange.close();
+                // TODO: broadcast new peer
+            });
+            server.createContext("/new_peer", exchange -> { // This endpoint will be called when a new peer is broadcasted
+                if (!exchange.getRequestMethod().equals("POST")) return;
+                InetSocketAddress newPeerAddress;
+                try {
+                    InetSocketAddress ignored = new InetSocketAddress(exchange.getRemoteAddress().getAddress(), Integer.parseInt(exchange.getRequestHeaders().getFirst("Port")));
+                    String[] body = new String(exchange.getRequestBody().readAllBytes()).split(":");
+                    newPeerAddress = new InetSocketAddress(body[0], Integer.parseInt(body[1]));
+                } catch (Exception e) {
+                    exchange.sendResponseHeaders(400, 0);
+                    exchange.close();
+                    return;
+                }
 
-    private void handleClient(Socket clientSocket) {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+                knownPeersObj.addNewPeer(newPeerAddress);
+                System.out.println("New Peer added: " + newPeerAddress.getAddress().getHostAddress() + ":" + newPeerAddress.getPort());
+                exchange.sendResponseHeaders(200, 0);
+                exchange.close();
+            });
+            server.createContext("/new_message", exchange -> { // This endpoint will be called when a new peer is broadcasted
+                if (!exchange.getRequestMethod().equals("POST")) return;
+                String body;
+                try {
+                    InetSocketAddress ignored = new InetSocketAddress(exchange.getRemoteAddress().getAddress(), Integer.parseInt(exchange.getRequestHeaders().getFirst("Port")));
+                    body = new String(exchange.getRequestBody().readAllBytes());
+                } catch (Exception e) {
+                    exchange.sendResponseHeaders(400, 0);
+                    exchange.close();
+                    return;
+                }
 
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while (!(line = reader.readLine()).isBlank() && reader.ready()) {
-                builder.append(line).append(System.lineSeparator());
-            }
-            String request = builder.toString();
-            System.out.println(request);
-
-            InetSocketAddress senderAddr = (InetSocketAddress) clientSocket.getRemoteSocketAddress();
-            System.out.println(senderAddr);
-            System.out.println(senderAddr.getClass());
-
-            String[] parts = request.split(" ");
-            String endpoint = parts[1];
-
-            switch (endpoint) {
-                case "/known_peers":
-                    sendKnownPeers(writer, senderAddr);
-                    break;
-                case "/new_peer":
-                    addNewKnownPeer(writer, senderAddr);
-                    break;
-                case "/new_message":
-                    // Handle new message
-                    break;
-                default:
-                    System.out.println("Unknown command: " + endpoint);
-                    break;
-            }
-
-            clientSocket.close();
+                // TODO: Add message to GUI
+                System.out.println("New Message received: " + body);
+                exchange.sendResponseHeaders(200, 0);
+                exchange.close();
+            });
+            server.start();
+            System.out.println("Server started on port " + server.getAddress().getPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void sendKnownPeers(PrintWriter writer, InetSocketAddress ipFrom) throws IOException {
-        writer.println("HTTP/1.1 200 OK");
-        writer.println();
-        for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(ipFrom)) {
-            writer.println(knownPeer.toString().substring(1));
-        }
-        knownPeersObj.broadcastNewPeer(ipFrom);
-    }
-
-    private void addNewKnownPeer(PrintWriter writer, InetSocketAddress peerInfo) throws IOException {
-        knownPeersObj.addNewPeer(peerInfo);
-        System.out.println("New known peer added: " + peerInfo.getHostString() + ":" + peerInfo.getPort());
-        writer.println("HTTP/1.1 200 OK");
-        writer.println();
     }
 
     public ObservableList<InetSocketAddress> getKnownPeers() {
         return knownPeersObj.knownPeers;
-    }
-
-    public static boolean sendPostRequest(InetSocketAddress addrTo, String endpoint, String message) {
-        try {
-            if (Request.post(addrTo + "/" + endpoint).addHeader("Port", String.valueOf(port)).addHeader("Message", message).execute().returnResponse().getCode() != 200) {
-                throw new IOException();
-            }
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 }

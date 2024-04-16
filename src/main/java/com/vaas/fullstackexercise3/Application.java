@@ -1,6 +1,5 @@
 package com.vaas.fullstackexercise3;
 
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -15,9 +14,7 @@ public class Application extends javafx.application.Application {
         stage.setTitle("VaasChat Client");
         stage.setScene(scene);
         stage.show();
-        (new Thread(() -> {
-            Server.getServerObject().startServer(0);
-        })).start();
+        Server.getServerObject().startServer();
     }
 
     public static void main(String[] args) {
