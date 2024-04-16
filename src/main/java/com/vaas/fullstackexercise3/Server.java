@@ -54,6 +54,7 @@ public class Server {
                 System.out.println(exchange.getRequestHeaders().getFirst("Port"));
                 StringBuilder builder = new StringBuilder();
                 for (InetSocketAddress knownPeer : knownPeersObj.getKnownPeers(address)) {
+                    if (knownPeer == address) continue;
                     builder.append(knownPeer.getAddress().getHostAddress()).append(":").append(knownPeer.getPort()).append(System.lineSeparator());
                 }
                 System.out.println(builder.toString().getBytes().length + ", " + builder.length());
@@ -95,6 +96,8 @@ public class Server {
                     return;
                 }
 
+                System.out.println(body);
+
                 messages.add(address.getHostString() + ":" + address.getPort() + " - " + body);
                 System.out.println("New Message received: " + body);
                 exchange.sendResponseHeaders(200, 0);
@@ -116,7 +119,7 @@ public class Server {
             try {
                 String addressString = peer.getAddress().getHostAddress() + ":" + peer.getPort();
                 if (isPeerBroadcast && addressString.equals(message)) continue;
-                HttpRequest request = HttpRequest.newBuilder().uri(new URI("http://" + addressString + "/new_" + (isPeerBroadcast ? "peer" : "message"))).POST(HttpRequest.BodyPublishers.ofString(addressString)).setHeader("Port", String.valueOf(port)).build();
+                HttpRequest request = HttpRequest.newBuilder().uri(new URI("http://" + addressString + "/new_" + (isPeerBroadcast ? "peer" : "message"))).POST(HttpRequest.BodyPublishers.ofString(message)).setHeader("Port", String.valueOf(port)).build();
                 HttpResponse<String> response = newClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != 200) {
                     throw new Exception();
