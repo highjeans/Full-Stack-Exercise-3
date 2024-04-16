@@ -2,6 +2,7 @@ package com.vaas.fullstackexercise3;
 
 import com.sun.net.httpserver.HttpServer;
 import javafx.beans.Observable;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.IOException;
@@ -12,9 +13,15 @@ public class Server {
     private Peers knownPeersObj;
     private static Server server;
     private static int port;
+    private ObservableList<String> messages;
 
     private Server() {
         knownPeersObj = new Peers();
+        messages = FXCollections.observableArrayList();
+    }
+
+    public ObservableList<String> getMessagesObject() {
+        return messages;
     }
 
     public static Server getServerObject() {
@@ -73,8 +80,9 @@ public class Server {
             server.createContext("/new_message", exchange -> { // This endpoint will be called when a new peer is broadcasted
                 if (!exchange.getRequestMethod().equals("POST")) return;
                 String body;
+                InetSocketAddress address;
                 try {
-                    InetSocketAddress ignored = new InetSocketAddress(exchange.getRemoteAddress().getAddress(), Integer.parseInt(exchange.getRequestHeaders().getFirst("Port")));
+                    address = new InetSocketAddress(exchange.getRemoteAddress().getAddress(), Integer.parseInt(exchange.getRequestHeaders().getFirst("Port")));
                     body = new String(exchange.getRequestBody().readAllBytes());
                 } catch (Exception e) {
                     exchange.sendResponseHeaders(400, 0);
@@ -82,7 +90,7 @@ public class Server {
                     return;
                 }
 
-                // TODO: Add message to GUI
+                messages.add(address.getHostString() + ":" + address.getPort() + " - " + body);
                 System.out.println("New Message received: " + body);
                 exchange.sendResponseHeaders(200, 0);
                 exchange.close();

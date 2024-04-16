@@ -34,6 +34,17 @@ public class Controller {
                 peersList.setText(newPeersString.toString());
             });
         });
+        Server.getServerObject().getMessagesObject().addListener((ListChangeListener<String>) change -> {
+            Platform.runLater(() -> {
+                // Update currentMessage in the GUI every time the message list is updated
+                List<String> messages = (List<String>) change.getList();
+                StringBuilder newMessagesString = new StringBuilder();
+                for (String message : messages) {
+                    newMessagesString.append(message).append("\n");
+                }
+                currentMessages.setText(newMessagesString.substring(0, newMessagesString.length() - 1));
+            });
+        });
     }
 
     @FXML
