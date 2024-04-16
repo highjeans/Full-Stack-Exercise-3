@@ -1,22 +1,18 @@
 package com.vaas.fullstackexercise3;
 
 import com.sun.net.httpserver.HttpServer;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Server {
     private Peers knownPeersObj;
@@ -66,7 +62,7 @@ public class Server {
                 out.write(builder.toString().getBytes());
                 out.flush();
                 exchange.close();
-                // TODO: broadcast new peer
+                broadcast(true, address.getHostString() + ":" + address.getPort());
             });
             server.createContext("/new_peer", exchange -> { // This endpoint will be called when a new peer is broadcasted
                 if (!exchange.getRequestMethod().equals("POST")) return;
@@ -109,6 +105,25 @@ public class Server {
             System.out.println("Server started on port " + port);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void broadcast(boolean isPeerBroadcast, String message) {
+        HttpClient newClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+        ObservableList<InetSocketAddress> peers = FXCollections.observableArrayList();
+        peers.addAll(getKnownPeers());
+        for (InetSocketAddress peer : peers) {
+            try {
+                String addressString = peer.getAddress().getHostAddress() + ":" + peer.getPort();
+                if (isPeerBroadcast && addressString.equals(message)) continue;
+                HttpRequest request = HttpRequest.newBuilder().uri(new URI("http://" + addressString + "/new_" + (isPeerBroadcast ? "peer" : "message"))).POST(HttpRequest.BodyPublishers.ofString(addressString)).setHeader("Port", String.valueOf(port)).build();
+                HttpResponse<String> response = newClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new Exception();
+                }
+            } catch (Exception e) {
+                knownPeersObj.knownPeers.remove(peer);
+            }
         }
     }
 

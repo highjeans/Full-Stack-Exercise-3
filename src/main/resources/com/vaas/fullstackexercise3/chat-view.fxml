@@ -54,8 +54,8 @@
                           fx:id="currentMessages"
                           VBox.vgrow="ALWAYS" minHeight="420" />
                 <HBox BorderPane.alignment="BOTTOM_CENTER" alignment="BOTTOM_CENTER">
-                    <TextField HBox.hgrow="ALWAYS" />
-                    <Button text="Send" />
+                    <TextField HBox.hgrow="ALWAYS" fx:id="newMessage"/>
+                    <Button text="Send" onAction="#broadcastMessage"/>
                 </HBox>
             </VBox>
         </center>

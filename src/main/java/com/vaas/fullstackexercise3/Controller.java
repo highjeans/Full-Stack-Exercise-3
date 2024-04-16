@@ -2,12 +2,14 @@ package com.vaas.fullstackexercise3;
 
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -21,6 +23,7 @@ public class Controller {
 
     @FXML
     public Label peersList;
+    public TextField newMessage;
 
     public Controller() {
         Server.getServerObject().getKnownPeers().addListener((ListChangeListener<InetSocketAddress>) change -> {
@@ -62,4 +65,9 @@ public class Controller {
         }
     }
 
+    public void broadcastMessage(ActionEvent actionEvent) {
+        Server.getServerObject().broadcast(false, newMessage.getText());
+        Server.getServerObject().getMessagesObject().add(newMessage.getText());
+        newMessage.setText("");
+    }
 }
