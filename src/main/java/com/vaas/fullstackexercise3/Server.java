@@ -4,10 +4,19 @@ import com.sun.net.httpserver.HttpServer;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Server {
     private Peers knownPeersObj;
@@ -96,7 +105,8 @@ public class Server {
                 exchange.close();
             });
             server.start();
-            System.out.println("Server started on port " + server.getAddress().getPort());
+            port = server.getAddress().getPort();
+            System.out.println("Server started on port " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,5 +114,22 @@ public class Server {
 
     public ObservableList<InetSocketAddress> getKnownPeers() {
         return knownPeersObj.knownPeers;
+    }
+
+    public boolean requestPeersFrom(String seedField) {
+        try {
+            String[] address = seedField.split(":");
+            InetSocketAddress peerToConnectTo = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+            HttpClient newClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+            HttpRequest request = HttpRequest.newBuilder().setHeader("Port", String.valueOf(port)).uri(new URI("http://" + peerToConnectTo.getHostString() + ":" + peerToConnectTo.getPort() + "/known_peers")).version(HttpClient.Version.HTTP_1_1).build();
+            HttpResponse<String> response = newClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) return false;
+            knownPeersObj.knownPeers.clear();
+            List<InetSocketAddress> peers = Arrays.stream(response.body().split(System.lineSeparator())).map(o -> new InetSocketAddress(o.split(":")[0], Integer.parseInt(o.split(":")[1]))).toList();
+            knownPeersObj.knownPeers.addAll(peers);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
