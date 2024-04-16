@@ -38,11 +38,6 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5-fluent</artifactId>
-            <version>5.2.1</version>
-        </dependency>
     </dependencies>
 
     <build>
