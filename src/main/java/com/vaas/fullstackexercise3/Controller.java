@@ -1,5 +1,6 @@
 package com.vaas.fullstackexercise3;
 
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,13 +17,15 @@ import java.util.List;
 public class Controller {
     public Controller() {
         Server.getServerObject().getKnownPeers().addListener((ListChangeListener<InetSocketAddress>) change -> {
-            // Update peersList in the GUI every time the knownPeers list is updated in through the Server
-            List<InetSocketAddress> new_peers = (List<InetSocketAddress>) change.getList();
-            StringBuilder newPeersString = new StringBuilder();
-            for (InetSocketAddress peer : new_peers) {
-                newPeersString.append(peer.getAddress().getHostAddress()).append(":").append(peer.getPort()).append("\n");
-            }
-            peersList.setText(newPeersString.toString());
+            Platform.runLater(() -> {
+                // Update peersList in the GUI every time the knownPeers list is updated in through the Server
+                List<InetSocketAddress> new_peers = (List<InetSocketAddress>) change.getList();
+                StringBuilder newPeersString = new StringBuilder();
+                for (InetSocketAddress peer : new_peers) {
+                    newPeersString.append(peer.getAddress().getHostAddress()).append(":").append(peer.getPort()).append("\n");
+                }
+                peersList.setText(newPeersString.toString());
+            });
         });
     }
 

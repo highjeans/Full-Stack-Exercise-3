@@ -62,7 +62,6 @@
         <right>
             <VBox>
                 <Label text="Connected peers"
-                       fx:id="peersList"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
                        alignment="CENTER"
@@ -70,6 +69,7 @@
                        wrapText="true"
                        style="-fx-font-size: 20;" />
                 <Label text="lorem ipsum right"
+                       fx:id="peersList"
                        prefWidth="200.0"
                        BorderPane.alignment="TOP_CENTER"
                        wrapText="true"
