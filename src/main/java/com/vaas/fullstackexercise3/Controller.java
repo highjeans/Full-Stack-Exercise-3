@@ -16,7 +16,11 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 public class Controller {
+    @FXML
     public TextArea currentMessages;
+
+    @FXML
+    public Label peersList;
 
     public Controller() {
         Server.getServerObject().getKnownPeers().addListener((ListChangeListener<InetSocketAddress>) change -> {
@@ -31,9 +35,6 @@ public class Controller {
             });
         });
     }
-
-    @FXML
-    public Label peersList;
 
     @FXML
     protected void enterPeerManually() throws IOException {
