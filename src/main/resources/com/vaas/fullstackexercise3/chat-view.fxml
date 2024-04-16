@@ -51,6 +51,7 @@
         <center>
             <VBox>
                 <TextArea wrapText="true"
+                          fx:id="currentMessages"
                           VBox.vgrow="ALWAYS" minHeight="420" />
                 <HBox BorderPane.alignment="BOTTOM_CENTER" alignment="BOTTOM_CENTER">
                     <TextField HBox.hgrow="ALWAYS" />

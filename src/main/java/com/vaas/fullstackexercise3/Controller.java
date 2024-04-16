@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -15,6 +16,8 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 public class Controller {
+    public TextArea currentMessages;
+
     public Controller() {
         Server.getServerObject().getKnownPeers().addListener((ListChangeListener<InetSocketAddress>) change -> {
             Platform.runLater(() -> {
