@@ -132,19 +132,32 @@ public class Server {
     }
 
     public boolean requestPeersFrom(String seedField) {
+        HttpResponse<String> response;
+        InetSocketAddress peerToConnectTo;
         try {
             String[] address = seedField.split(":");
-            InetSocketAddress peerToConnectTo = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+            peerToConnectTo = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
             HttpClient newClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
             HttpRequest request = HttpRequest.newBuilder().setHeader("Port", String.valueOf(port)).uri(new URI("http://" + peerToConnectTo.getHostString() + ":" + peerToConnectTo.getPort() + "/known_peers")).version(HttpClient.Version.HTTP_1_1).build();
-            HttpResponse<String> response = newClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) return false;
-            knownPeersObj.knownPeers.clear();
-            List<InetSocketAddress> peers = Arrays.stream(response.body().split(System.lineSeparator())).map(o -> new InetSocketAddress(o.split(":")[0], Integer.parseInt(o.split(":")[1]))).toList();
-            knownPeersObj.knownPeers.addAll(peers);
-            return true;
+            response = newClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                System.out.println("Status code is not 200");
+                return false;
+            }
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
+        knownPeersObj.knownPeers.clear();
+        messages.clear();
+        try {
+            List<InetSocketAddress> peers = Arrays.stream(response.body().split(System.lineSeparator())).map(o -> new InetSocketAddress(o.split(":")[0], Integer.parseInt(o.split(":")[1]))).toList();
+            knownPeersObj.knownPeers.addAll(peers);
+        }
+        catch (IndexOutOfBoundsException ignored) {
+
+        }
+        knownPeersObj.addNewPeer(peerToConnectTo);
+        return true;
     }
 }
